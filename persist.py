@@ -9,8 +9,9 @@ logger = logging.getLogger("raft")
 
 class Persist:
 
-    def __init__(self, reset=False):
-        if reset or not os.path.isfile("persist"):
+    def __init__(self, port, reset=False):
+        self.log_file = "persist_" + str(port)
+        if reset or not os.path.isfile(self.log_file):
             self.data = {
                 "current_term": 0,
                 "vote_for": None,
@@ -29,23 +30,38 @@ class Persist:
         self.serialize()
         logger.info(f"Vote for {self.get_vote_for()}")
 
-    def append_entry(self, index, entry):
-        self.data["log_manager"].append_entry(index, entry)
+    def append_entries(self, index, entry):
+        self.data["log_manager"].append_entries(index, entry)
         self.serialize()
         logger.info("New entry appended")
 
     def get_current_term(self):
         return self.data["current_term"]
 
+    def set_current_term(self, term):
+        self.data["current_term"] = term
+
     def get_vote_for(self):
         return self.data["vote_for"]
+
+    def set_vote_for(self, candidate):
+        self.data["vote_for"] =  candidate
+
+    def get_last_log_index(self):
+        return self.data["log_manager"].get_last_log_index()
+
+    def get_last_log_term(self):
+        return self.data["log_manager"].get_last_log_term()
+
+    def get_log_term(self, index):
+        return self.data["log_manager"].get_log_term(index)
 
     def serialize(self):
         """
         Store object into the disk
         data -- the object to be stored
         """
-        fileObject = open("persist", "wb")
+        fileObject = open(self.log_file, "wb")
         pickle.dump(self.data, fileObject)
         fileObject.close()
 
@@ -53,16 +69,15 @@ class Persist:
         """
         Retrieve object from the disk
         """
-        fileObject = open("persist", "rb")
+        fileObject = open(self.log_file, "rb")
         data = pickle.load(fileObject)
         return data
 
 
 def test():
-    persist = Persist()
-    persist.append_entry(2, "update")
+    persist = Persist(reset=True)
+    persist.append_entries(0, ["update"])
     persist.increment_term()
-    newP = Persist()
-    print(newP.data["log_manager"].get_log())
-
+    #newP = Persist()
+    #print(newP.data["log_manager"].get_log())
 
