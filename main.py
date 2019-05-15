@@ -11,7 +11,7 @@ def main():
     IPAddr = socket.gethostbyname(hostname)
 
     config = {"address": (IPAddr, int(sys.argv[1])),
-     "cluster": [("10.12.43.212", 6001), (IPAddr, 6001), ("10.13.61.65", 6001)]}
+     "cluster": [("10.12.43.212", 6001), ("10.12.231.81", 6001), ("10.13.61.65", 6001)]}
 
     loop = asyncio.get_event_loop()
     raft = Raft(config=config, port=int(sys.argv[1]))
