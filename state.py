@@ -52,7 +52,7 @@ class Follower(State):
         if hasattr(self, "follower_timer"):
             self.follower_timer.cancel()
         
-        timeout = random.randint(200, 400)/1000
+        timeout = random.randint(200, 400)/200
         loop = asyncio.get_event_loop()
         self.follower_timer = loop.call_later(timeout, self.raft.change_state, Candidate)
 
@@ -83,7 +83,9 @@ class Follower(State):
             response["success"] = True
             self.raft.append_entries(message["prev_log_index"], message["entries"])
 
-            self.raft.commit_index = min(message["prev_log_index"], self.raft.get_last_log_index())
+            #self.raft.commit_index = min(message["prev_log_index"], self.raft.get_last_log_index())
+            self.raft.commit_index = min(message["leader_commit"], self.raft.get_last_log_index())
+            #print("Commit index is {}".format(self.raft.commit_index))
             self.raft.apply_action(self.raft.get_commit_index())
 
         response["match_index"] = self.raft.get_last_log_index()
@@ -112,7 +114,7 @@ class Candidate(State):
         if hasattr(self, "election_timer"):
             self.election_timer.cancel()
         
-        timeout = random.randint(200, 400)/1000
+        timeout = random.randint(200, 400)/200
         loop = asyncio.get_event_loop()
         self.election_timer = loop.call_later(timeout, self.raft.change_state, Candidate)
 
@@ -178,7 +180,7 @@ class Leader(State):
         if hasattr(self, "heartbeat_timer"):
             self.heartbeat_timer.cancel()
         
-        timeout = 0.1
+        timeout = 0.7
         loop = asyncio.get_event_loop()
         self.heartbeat_timer = loop.call_later(timeout, self.send_append_entries)
 
@@ -190,7 +192,7 @@ class Leader(State):
             self.next_index[self.raft.get_address()] = self.raft.get_last_log_index() + 1
 
             # The median of the commit_index is the maximum log that appears on majority of servers
-            self.commit_index = median(self.match_index.values())
+            self.raft.commit_index = median(self.match_index.values())
             #TODO commit
             self.raft.apply_action(self.raft.get_commit_index())
             self.respond_to_client()
@@ -235,7 +237,7 @@ class Leader(State):
         }
         servered = []
         for client in self.waiting_list:
-            if client <= self.commit_index:
+            if client <= self.raft.commit_index:
                 self.raft.send_client_message(message, self.waiting_list[client])
                 logger.info("Sending client result")
                 servered.append(client)

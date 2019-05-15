@@ -13,7 +13,6 @@ class LogManager:
         """
         Here index starts from 1
         """
-        
         if index == len(self.log):
             self.log = self.log[:] + entry
         elif index < len(self.log):
@@ -38,10 +37,8 @@ class LogManager:
     def get_log(self):
         return self.log
 
-    def apply_action(self, commit_index, last_applied):
-        for index in range(last_applied+1, commit_index+1):
-            command = self.log[index-1]["command"]
-            print("{} applied".format(command))
+    
+        
         
 
 

@@ -56,8 +56,6 @@ class Persist:
     def get_log_term(self, index):
         return self.data["log_manager"].get_log_term(index)
 
-    def apply_action(self, commit_index, last_applied):
-        self.data["log_manager"].apply_action(commit_index, last_applied)
 
     def serialize(self):
         """
@@ -77,10 +75,4 @@ class Persist:
         return data
 
 
-def test():
-    persist = Persist(reset=True)
-    persist.append_entries(0, ["update"])
-    persist.increment_term()
-    #newP = Persist()
-    #print(newP.data["log_manager"].get_log())
 

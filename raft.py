@@ -5,7 +5,7 @@ import json
 class Raft:
 
     def __init__(self, config, port, state=Follower):
-        self.persist = Persist(port, reset=True)
+        self.persist = Persist(port, reset=False)
         self.state = state(self)
         self.cluster = config["cluster"]
         self.address = config["address"]
@@ -14,6 +14,8 @@ class Raft:
         self.leader = None
         self.transport= None
         self.client_transport = None
+        self.state_machine = []
+        self.state_file = "state_" + str(port)
 
     def change_state(self, new_state):
         self.state.leave_state()
@@ -90,5 +92,12 @@ class Raft:
         self.persist.append_entries(index, entry)
 
     def apply_action(self, commit_index):
-        self.persist.apply_action(commit_index, self.last_applied)
-        self.last_applied = commit_index
+
+        logs = self.persist.data["log_manager"].log[self.last_applied:self.commit_index]
+        for log in logs:
+            command = log["command"]
+            self.state_machine.append(command)
+            self.last_applied += 1
+
+        with open(self.state_file, 'w') as f:
+            f.write(str(self.state_machine))

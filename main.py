@@ -5,7 +5,7 @@ from protocol import UDPProtocol, TCPProtocol
 
 def main():
     config = {"address": ("127.0.0.1", int(sys.argv[1])),
-     "cluster": [("127.0.0.1", 6001), ("127.0.0.1", 6002), ("127.0.0.1", 6003)]}
+     "cluster": [("10.12.43.212", 6001), ("10.12.231.81", 6002), ("10.13.61.65", 6003)]}
 
     loop = asyncio.get_event_loop()
     raft = Raft(config=config, port=int(sys.argv[1]))
