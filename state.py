@@ -244,3 +244,6 @@ class Leader(State):
                 servered.append(client)
         for client in servered:
             self.waiting_list.pop(client)
+
+    def vote_result(self):
+        pass
