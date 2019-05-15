@@ -5,7 +5,7 @@ import random
 class Client:
     def __init__(self):
 
-        self.server_addresses = [("10.12.43.212", 6001), ("10.12.231.81", 6002), ("10.13.61.65", 6003)]
+        self.server_addresses = [("10.12.43.212", 6001), ("10.12.231.81", 6001), ("10.13.61.65", 6001)]
         
             
         

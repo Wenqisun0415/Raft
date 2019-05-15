@@ -23,7 +23,7 @@ class State:
                 self.raft.change_state(Follower)
                 self.raft.state.receive_peer_message(peer, message)
                 return
-        
+        print("Message type is {}".format(message["type"]))
         called_method = getattr(self, message["type"], None)
         called_method(peer, message)
 
