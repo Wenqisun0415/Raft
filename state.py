@@ -21,7 +21,8 @@ class State:
             if not type(self) is Follower:
                 logger.info("Turn into follower due to higher term from other peer")
                 self.raft.change_state(Follower)
-                self.raft.state.receive_peer_message(peer, message)
+                if message["type"] != "append_entries_response":
+                    self.raft.state.receive_peer_message(peer, message)
                 return
         print("Message type is {}".format(message["type"]))
         called_method = getattr(self, message["type"], None)
