@@ -13,6 +13,7 @@ class Raft:
         self.last_applied = 0
         self.leader = None
         self.transport= None
+        self.client_transport = None
 
     def change_state(self, new_state):
         self.state.leave_state()
@@ -21,10 +22,17 @@ class Raft:
     def receive_peer_message(self, peer, message):
         self.state.receive_peer_message(peer, message)
 
+    def receive_client_message(self, message, transport):
+        self.state.receive_client_message(message, transport)
+
     def send_peer_message(self, peer, message):
         json_msg = json.dumps(message)
         if peer != self.address:
             self.transport.sendto(json_msg.encode(), peer)
+
+    def send_client_message(self, message, transport):
+        json_msg = json.dumps(message)
+        transport.write(json_msg.encode())
 
     def broadcast(self, message):
         for peer in self.cluster:
@@ -80,3 +88,7 @@ class Raft:
 
     def append_entries(self, index, entry):
         self.persist.append_entries(index, entry)
+
+    def apply_action(self, commit_index):
+        self.persist.apply_action(commit_index, self.last_applied)
+        self.last_applied = commit_index

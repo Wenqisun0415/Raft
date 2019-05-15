@@ -3,6 +3,7 @@ import random
 import asyncio
 from statistics import median
 import logging.config
+import json
 
 logging.config.fileConfig(fname='file.conf', disable_existing_loggers=False)
 logger = logging.getLogger("raft")
@@ -26,56 +27,19 @@ class State:
         called_method = getattr(self, message["type"], None)
         called_method(peer, message)
 
-    def receive_client_message(self, transport, message):
-        called_method = message["type"]
-        called_method(transport, message)
-
-    def client_upload(self, transport, message):
+    def receive_client_message(self, message, transport):
         if self.raft.get_leader() != self.raft.get_address():
             logger.info("Redirecting message to leader")
             new_message = {
                 "type": "redirect",
                 "leader_address": self.raft.get_leader()
             }
-            transport.send(new_message)
+            self.raft.send_client_message(new_message, transport)
         else:
-            reply = {
-                "type": "upload_granted"
-            }
-            transport.send(reply)
-            logger.info("upload is granted")
-
-    def client_download(self, transport, message):
-        if self.raft.get_leader() != self.raft.get_address():
-            logger.info("Redirecting message to leader")
-            new_message = {
-                "type": "redirect",
-                "leader_address": self.raft.get_leader()
-            }
-            transport.send(new_message)
-        else:
-            reply = {
-                "type": "download_granted"
-            }
-            transport.send(reply)
-            logger.info("downloaded is granted")
-
-    def client_delete(self, transport, message):
-        if self.raft.get_leader() != self.raft.get_address():
-            logger.info("Redirecting message to leader")
-            new_message = {
-                "type": "redirect",
-                "leader_address": self.raft.get_leader()
-            }
-            transport.send(new_message)
-        else:
-            file = message["file"]
-            #delete the file here
-            reply = {
-                "type": "download_granted"
-            }
-            transport.send(reply)
-            logger.info("downloaded is granted")
+            msg = message["type"]
+            #logger.info(f"Received {msg}")
+            called_method = getattr(self, message["type"], None)
+            called_method(message, transport)
 
 class Follower(State):
 
@@ -119,8 +83,9 @@ class Follower(State):
             response["success"] = True
             self.raft.append_entries(message["prev_log_index"], message["entries"])
 
-            #TODO
-            self.raft.commit_index = min(message["prev_log_index"], 0)
+            self.raft.commit_index = min(message["prev_log_index"], self.raft.get_last_log_index())
+            self.raft.apply_action(self.raft.get_commit_index())
+
         response["match_index"] = self.raft.get_last_log_index()
         self.raft.send_peer_message(peer, response)
         
@@ -181,11 +146,13 @@ class Leader(State):
         super().__init__(raft)
         self.next_index = {}
         self.match_index = {}
+        self.waiting_list = {}
         for peer in raft.get_cluster():
             self.next_index[peer] = self.raft.get_last_log_index() + 1
             self.match_index[peer] = 0
         self.send_append_entries()
         self.reset_heartbeat_timer()
+        self.raft.set_leader(self.raft.get_address())
 
     def leave_state(self):
         self.heartbeat_timer.cancel()
@@ -225,8 +192,52 @@ class Leader(State):
             # The median of the commit_index is the maximum log that appears on majority of servers
             self.commit_index = median(self.match_index.values())
             #TODO commit
-            #self.send_append_response()
+            self.raft.apply_action(self.raft.get_commit_index())
+            self.respond_to_client()
 
         else:
             self.next_index[peer] -= 1
 
+    def client_upload(self, message, transport):
+        index = self.raft.get_last_log_index()
+        entries = [{
+            "term": self.raft.get_current_term(),
+            "command": "upload"
+        }]
+        self.waiting_list[index] = transport
+        self.raft.append_entries(index, entries)
+        logger.info("Upload is recorded")
+
+    def client_download(self, message, transport):
+        index = self.raft.get_last_log_index()
+        entries = [{
+            "term": self.raft.get_current_term(),
+            "command": "download"
+        }]
+        self.waiting_list[index] = transport
+        self.raft.append_entries(index, entries)
+        logger.info("Download is recorded")
+
+    def client_delete(self, message, transport):
+        index = self.raft.get_last_log_index()
+        entries = [{
+            "term": self.raft.get_current_term(),
+            "command": "delete"
+        }]
+        self.waiting_list[index] = transport
+        self.raft.append_entries(index, entries)
+        logger.info("Delete is recorded")
+
+    def respond_to_client(self):
+        message = {
+            "type": "result",
+            "success": True
+        }
+        servered = []
+        for client in self.waiting_list:
+            if client <= self.commit_index:
+                self.raft.send_client_message(message, self.waiting_list[client])
+                logger.info("Sending client result")
+                servered.append(client)
+        for client in servered:
+            self.waiting_list.pop(client)

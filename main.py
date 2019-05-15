@@ -1,7 +1,7 @@
 import sys
 import asyncio
 from raft import Raft
-from protocol import UDPProtocol
+from protocol import UDPProtocol, TCPProtocol
 
 def main():
     config = {"address": ("127.0.0.1", int(sys.argv[1])),
@@ -9,8 +9,10 @@ def main():
 
     loop = asyncio.get_event_loop()
     raft = Raft(config=config, port=int(sys.argv[1]))
-    connect = loop.create_datagram_endpoint(lambda: UDPProtocol(loop, raft), local_addr=('127.0.0.1', int(sys.argv[1])))
-    loop.run_until_complete(connect)
+    udp = loop.create_datagram_endpoint(lambda: UDPProtocol(loop, raft), local_addr=('127.0.0.1', int(sys.argv[1])))
+    loop.run_until_complete(udp)
+    tcp = loop.create_server(lambda: TCPProtocol(loop, raft), '127.0.0.1', int(sys.argv[1]))
+    loop.run_until_complete(tcp)
     loop.run_forever()
 
 if __name__ == "__main__":

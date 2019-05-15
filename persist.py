@@ -56,6 +56,9 @@ class Persist:
     def get_log_term(self, index):
         return self.data["log_manager"].get_log_term(index)
 
+    def apply_action(self, commit_index, last_applied):
+        self.data["log_manager"].apply_action(commit_index, last_applied)
+
     def serialize(self):
         """
         Store object into the disk
