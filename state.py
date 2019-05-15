@@ -21,8 +21,7 @@ class State:
             if not type(self) is Follower:
                 logger.info("Turn into follower due to higher term from other peer")
                 self.raft.change_state(Follower)
-                if message["type"] != "append_entries_response":
-                    self.raft.state.receive_peer_message(peer, message)
+                self.raft.state.receive_peer_message(peer, message)
                 return
         print("Message type is {}".format(message["type"]))
         called_method = getattr(self, message["type"], None)
@@ -91,6 +90,9 @@ class Follower(State):
 
         response["match_index"] = self.raft.get_last_log_index()
         self.raft.send_peer_message(peer, response)
+
+    def append_entries_response(self, peer, message):
+        pass
         
 
 class Candidate(State):
@@ -115,7 +117,7 @@ class Candidate(State):
         if hasattr(self, "election_timer"):
             self.election_timer.cancel()
         
-        timeout = random.randint(200, 400)/200
+        timeout = random.randint(200, 400)/100
         loop = asyncio.get_event_loop()
         self.election_timer = loop.call_later(timeout, self.raft.change_state, Candidate)
 
@@ -142,6 +144,9 @@ class Candidate(State):
         logger.info("Turning to follower due to receiving from leader")
         self.raft.change_state(Follower)
         self.raft.state.append_entries(peer, message)
+
+    def append_entries_response(self, peer, message):
+        pass
 
 class Leader(State):
 
@@ -245,5 +250,5 @@ class Leader(State):
         for client in servered:
             self.waiting_list.pop(client)
 
-    def vote_result(self):
+    def vote_result(self, peer, message):
         pass
