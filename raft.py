@@ -5,7 +5,7 @@ import json
 class Raft:
 
     def __init__(self, config, port, state=Follower):
-        self.persist = Persist(port, reset=False)
+        self.persist = Persist(port, reset=True)
         self.state = state(self)
         self.cluster = config["cluster"]
         self.address = config["address"]
@@ -13,9 +13,7 @@ class Raft:
         self.last_applied = 0
         self.leader = None
         self.transport= None
-        self.client_transport = None
-        self.state_machine = []
-        self.state_file = "state_" + str(port)
+        self.snapshot= Snapshot(self,port)
 
     def change_state(self, new_state):
         self.state.leave_state()
@@ -24,17 +22,10 @@ class Raft:
     def receive_peer_message(self, peer, message):
         self.state.receive_peer_message(peer, message)
 
-    def receive_client_message(self, message, transport):
-        self.state.receive_client_message(message, transport)
-
     def send_peer_message(self, peer, message):
         json_msg = json.dumps(message)
         if peer != self.address:
             self.transport.sendto(json_msg.encode(), peer)
-
-    def send_client_message(self, message, transport):
-        json_msg = json.dumps(message)
-        transport.write(json_msg.encode())
 
     def broadcast(self, message):
         for peer in self.cluster:
@@ -90,14 +81,23 @@ class Raft:
 
     def append_entries(self, index, entry):
         self.persist.append_entries(index, entry)
+        
+        #change by mia
 
-    def apply_action(self, commit_index):
+    def get_last_applied_index(self):
+        return self.last_applied
+        # todo
+    def get_state_machine_data(self):
+        return 
+    def snapshot_change_log(self,last_include_index):
+        self.persist.snapshot_change_log(last_include_index)
+    #used  after applied
+    def compact_check(self):
+        last_include_index=self.snapshot.get_last_include_index()
+        if self.last_applied-last_include_index>50:
+            term=self.get_log_term(self.last_applied)
+            #todo...get data of state machine
+            data={}
+            self.snapshot.start_compact();
 
-        logs = self.persist.data["log_manager"].log[self.last_applied:self.commit_index]
-        for log in logs:
-            command = log["command"]
-            self.state_machine.append(command)
-            self.last_applied += 1
-
-        with open(self.state_file, 'w') as f:
-            f.write(str(self.state_machine))
+#change by mia

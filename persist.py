@@ -16,6 +16,7 @@ class Persist:
                 "current_term": 0,
                 "vote_for": None,
                 "log_manager": LogManager()
+                "snapshot": Snapshot()
             }
         else:
             self.data = self.deserialized()
@@ -56,7 +57,6 @@ class Persist:
     def get_log_term(self, index):
         return self.data["log_manager"].get_log_term(index)
 
-
     def serialize(self):
         """
         Store object into the disk
@@ -73,6 +73,16 @@ class Persist:
         fileObject = open(self.log_file, "rb")
         data = pickle.load(fileObject)
         return data
+    #change by mia
+    def compact_check(self):
+        self.data["snapshot"].compact_check(self.data["log_manager"])
+    def snapshot_change_log(self,last_include_index):
+        return self.data["log_manager"].snapshot_change_log(last_include_index)
 
-
+def test():
+    persist = Persist(reset=True)
+    persist.append_entries(0, ["update"])
+    persist.increment_term()
+    #newP = Persist()
+    #print(newP.data["log_manager"].get_log())
 

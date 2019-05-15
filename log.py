@@ -8,6 +8,7 @@ class LogManager:
 
     def __init__(self, log=[]):
         self.log = log
+        
 
     def append_entries(self, index, entry):
         """
@@ -30,16 +31,17 @@ class LogManager:
             return 0
 
     def get_log_term(self, index):
-        if index == 0:
+        if index >= len(self.log):
             return 0
         return self.log[index-1]["term"]
 
     def get_log(self):
         return self.log
 
-    
-        
-        
+    # change by mia
+    #delete log <=commitindex
+    def snapshot_change_log(self,last_include_index):
+
 
 
 
