@@ -1,3 +1,4 @@
+#this file includes the logic processign of three states in Raft.
 from persist import Persist
 import random
 import asyncio
@@ -8,14 +9,17 @@ import json
 logging.config.fileConfig(fname='file.conf', disable_existing_loggers=False)
 logger = logging.getLogger("raft")
 
-class State:
 
+class State:
+# 'State' class is the basic class of 'Follower', 'Candidate' and 'Leader'.
     def __init__(self, raft):
         self.raft = raft
     
     def receive_peer_message(self, peer, message):
-        
+        # this method deal with messages received from peer server node.
         logger.info(f"Receive {message['type']} from {peer}")
+                    
+        #when 'term' received is larger than node own term, update, and turn to 'Follower'.
         if self.raft.get_current_term() < message["term"]:
             self.raft.set_current_term(message["term"])
             if not type(self) is Follower:
@@ -24,6 +28,8 @@ class State:
                 self.raft.state.receive_peer_message(peer, message)
                 return
         print("Message type is {}".format(message["type"]))
+        
+        #according to message type, call correspondent methods.
         called_method = getattr(self, message["type"], None)
         called_method(peer, message)
 
