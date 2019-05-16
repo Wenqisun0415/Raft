@@ -52,7 +52,7 @@ class Follower(State):
         if hasattr(self, "follower_timer"):
             self.follower_timer.cancel()
         
-        timeout = random.randint(300, 500)/1000
+        timeout = random.randint(300, 400)/200
         loop = asyncio.get_event_loop()
         self.follower_timer = loop.call_later(timeout, self.raft.change_state, Candidate)
 
@@ -121,7 +121,7 @@ class Candidate(State):
         if hasattr(self, "election_timer"):
             self.election_timer.cancel()
         
-        timeout = random.randint(300, 500)/1000
+        timeout = random.randint(300, 400)/200
         loop = asyncio.get_event_loop()
         self.election_timer = loop.call_later(timeout, self.raft.change_state, Candidate)
 
@@ -193,7 +193,7 @@ class Leader(State):
         if hasattr(self, "heartbeat_timer"):
             self.heartbeat_timer.cancel()
         
-        timeout = 0.15
+        timeout = 0.8
         loop = asyncio.get_event_loop()
         self.heartbeat_timer = loop.call_later(timeout, self.send_append_entries)
 
