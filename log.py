@@ -32,6 +32,8 @@ class LogManager:
     def get_log_term(self, index):
         if index == 0:
             return 0
+        elif index > len(self.log):
+            return 0
         return self.log[index-1]["term"]
 
     def get_log(self):

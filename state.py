@@ -75,13 +75,14 @@ class Follower(State):
         self.reset_timer()
         self.raft.leader = tuple(message["leader_id"])
         response = {"type": "append_entries_response", "term": self.raft.get_current_term()}
+        print("Prev_log_index is {}".format(message["prev_log_index"]))
         if message["term"] < self.raft.get_current_term():
             response["success"] = False
         elif self.raft.get_log_term(message["prev_log_index"]) != message["prev_log_term"]:
             response["success"] = False
         else:
             response["success"] = True
-            logger.info(f"Now appending entries {message['entries]} with index {message['prev_log_index']}")
+            logger.info(f"Now appending entries {message['entries']} with index {message['prev_log_index']}")
             self.raft.append_entries(message["prev_log_index"], message["entries"])
 
             #self.raft.commit_index = min(message["prev_log_index"], self.raft.get_last_log_index())
