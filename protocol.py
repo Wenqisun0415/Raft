@@ -6,6 +6,8 @@ import json
 logging.config.fileConfig(fname='file.conf', disable_existing_loggers=False)
 logger = logging.getLogger("raft")
 
+# Using TCP for connection between client and server 
+# Using UDP for connection between server and server
 class UDPProtocol:
 
     def __init__(self, loop, raft):
