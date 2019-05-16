@@ -31,16 +31,34 @@ class Client:
             if response['type'] == 'redirect':
                 self.server_address = tuple(response["leader_address"])
                 self.request(message)
-            elif response["success"]:
-                print("{} succeed!".format(message["command"]))
+            else:
+                print(response["result"])
 
         except (ConnectionRefusedError, socket.timeout):
             self.request(message)
         
+    def insert(self, key, value):
+        self.request({
+            "type": "client_request",
+            "command": "set",
+            "key": key,
+            "value": value
+        })
 
-    def append(self, data):
-        self.request({'type':'client_'+str(data) ,'command':data})
+    def get(self, key):
+        self.request({
+            "type": "client_request",
+            "command": "get",
+            "key": key
+        })
 
-    def t(self):
-        self.append("upload")
+    def delete(self, key):
+        self.request({
+            "type": "client_request",
+            "command": "del",
+            "key": key
+        })
+
+
+
 

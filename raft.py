@@ -1,6 +1,10 @@
 from state import Follower
 from persist import Persist
 import json
+import logging
+
+logging.config.fileConfig(fname='file.conf', disable_existing_loggers=False)
+logger = logging.getLogger("raft")
 
 class Raft:
 
@@ -14,8 +18,9 @@ class Raft:
         self.leader = None
         self.transport= None
         self.client_transport = None
-        self.state_machine = []
+        self.state_machine = {}
         self.state_file = "state_" + str(port)
+        self.result = None
 
     def change_state(self, new_state):
         self.state.leave_state()
@@ -95,8 +100,23 @@ class Raft:
 
         logs = self.persist.data["log_manager"].log[self.last_applied:self.commit_index]
         for log in logs:
-            command = log["command"]
-            self.state_machine.append(command)
+            if log["command"] == "insert":
+                self.state_machine[log["key"]] = log["value"]
+                self.result = "OK"
+            elif log["command"] == "get":
+                if log["key"] in self.state_machine:
+                    self.result = self.state_machine[log["key"]]
+                else:
+                    self.result = "(nil)"
+            elif log["command"] == "delete":
+                if log["key"] in self.state_machine:
+                    del self.state_machine[log["key"]]
+                    self.result = "(integer) 1"
+                else:
+                    self.result = "(integer) 0"
+            else:
+                logger.error("Client command fatal error")
+            
             self.last_applied += 1
 
         with open(self.state_file, 'w') as f:

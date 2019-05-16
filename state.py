@@ -213,40 +213,22 @@ class Leader(State):
         else:
             self.next_index[peer] -= 1
 
-    def client_upload(self, message, transport):
+    def client_request(self, message, transport):
         index = self.raft.get_last_log_index()
         entries = [{
             "term": self.raft.get_current_term(),
-            "command": "upload"
+            "command": message["command"],
+            "key": message["key"],
+            "value": message["value"] if "value" in message else None
         }]
         self.waiting_list[index] = transport
         self.raft.append_entries(index, entries)
         logger.info("Upload is recorded")
 
-    def client_download(self, message, transport):
-        index = self.raft.get_last_log_index()
-        entries = [{
-            "term": self.raft.get_current_term(),
-            "command": "download"
-        }]
-        self.waiting_list[index] = transport
-        self.raft.append_entries(index, entries)
-        logger.info("Download is recorded")
-
-    def client_delete(self, message, transport):
-        index = self.raft.get_last_log_index()
-        entries = [{
-            "term": self.raft.get_current_term(),
-            "command": "delete"
-        }]
-        self.waiting_list[index] = transport
-        self.raft.append_entries(index, entries)
-        logger.info("Delete is recorded")
-
     def respond_to_client(self):
         message = {
             "type": "result",
-            "success": True
+            "result": self.raft.result
         }
         servered = []
         for client in self.waiting_list:
