@@ -98,6 +98,7 @@ class Raft:
 
     def apply_action(self, commit_index):
 
+        logger.info("Action applied")
         logs = self.persist.data["log_manager"].log[self.last_applied:self.commit_index]
         for log in logs:
             if log["command"] == "insert":
