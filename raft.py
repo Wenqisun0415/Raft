@@ -21,7 +21,7 @@ class Raft:
         self.state_machine = {}
         self.state_file = "state_" + str(port)
         self.result = {}
-
+    
     def change_state(self, new_state):
         self.state.leave_state()
         self.state = new_state(self)
@@ -40,7 +40,8 @@ class Raft:
     def send_client_message(self, message, transport):
         json_msg = json.dumps(message)
         transport.write(json_msg.encode())
-
+    
+    # Send message from leader to followers
     def broadcast(self, message):
         for peer in self.cluster:
             self.send_peer_message(peer, message)
@@ -95,7 +96,8 @@ class Raft:
 
     def append_entries(self, index, entry):
         self.persist.append_entries(index, entry)
-
+    
+    # Receive actions from Client and send back the result
     def apply_action(self, commit_index):
 
         logs = self.persist.data["log_manager"].log[self.last_applied:self.commit_index]
