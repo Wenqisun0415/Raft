@@ -5,13 +5,16 @@ import select
 
 class Client:
     def __init__(self):
-
+        # initial IP addresses of server cluster
         self.server_addresses = [("10.12.43.212", 6001), ("10.12.231.81", 6001), ("10.13.61.65", 6001)]
         socket.setdefaulttimeout(1)
         
 
     def request(self, message):
-
+        
+        #Choose random IP address to connect. If the IP address does not belong to leader, server will
+        #send back leader's IP address
+        
         self.server_address = random.choice(self.server_addresses)
 
         self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -37,6 +40,7 @@ class Client:
         except (ConnectionRefusedError, socket.timeout):
             self.request(message)
         
+        # Function of dictionary
     def insert(self, key, value):
         self.request({
             "type": "client_request",
