@@ -34,6 +34,7 @@ class State:
         called_method(peer, message)
 
     def receive_client_message(self, message, transport):
+        # this 
         if self.raft.get_leader() != self.raft.get_address():
             logger.info("Redirecting message to leader")
             new_message = {
