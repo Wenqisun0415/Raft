@@ -4,7 +4,7 @@ from raft import Raft
 from protocol import UDPProtocol, TCPProtocol
 import socket
 
-
+# Main function to start or test
 def main():
 
     hostname = socket.gethostname()    
