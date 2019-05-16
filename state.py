@@ -81,6 +81,7 @@ class Follower(State):
             response["success"] = False
         else:
             response["success"] = True
+            logger.info(f"Now appending entries {message['entries]} with index {message['prev_log_index']}")
             self.raft.append_entries(message["prev_log_index"], message["entries"])
 
             #self.raft.commit_index = min(message["prev_log_index"], self.raft.get_last_log_index())
@@ -94,6 +95,8 @@ class Follower(State):
     def append_entries_response(self, peer, message):
         pass
         
+    def vote_result(self, peer, message):
+        pass
 
 class Candidate(State):
 

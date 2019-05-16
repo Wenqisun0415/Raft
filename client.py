@@ -7,8 +7,7 @@ class Client:
     def __init__(self):
 
         self.server_addresses = [("10.12.43.212", 6001), ("10.12.231.81", 6001), ("10.13.61.65", 6001)]
-        
-            
+        socket.setdefaulttimeout(1)
         
 
     def request(self, message):
@@ -17,28 +16,25 @@ class Client:
 
         self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         
-        self.client.setblocking(0)
 
         try:
             self.client.connect(self.server_address)
             self.client.send(json.dumps(message).encode("utf-8"))
 
-            ready = select.select([self.client], [], [], 1)
-            if ready[0]:
-                response = bytes()
-                response += self.client.recv(1024)
 
-                self.client.close()
-                response = response.decode("utf-8")
-                response = json.loads(response)
-                if response['type'] == 'redirect':
-                    self.server_address = tuple(response["leader_address"])
-                    self.request(message)
-                elif response["success"]:
-                    print("{} succeed!".format(message["command"]))
-            else:
+            response = bytes()
+            response += self.client.recv(1024)
+
+            self.client.close()
+            response = response.decode("utf-8")
+            response = json.loads(response)
+            if response['type'] == 'redirect':
+                self.server_address = tuple(response["leader_address"])
                 self.request(message)
-        except ConnectionRefusedError:
+            elif response["success"]:
+                print("{} succeed!".format(message["command"]))
+
+        except (ConnectionRefusedError, socket.timeout):
             self.request(message)
         
 
