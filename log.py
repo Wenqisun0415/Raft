@@ -8,11 +8,11 @@ class LogManager:
 
     def __init__(self, log=[]):
         self.log = log
-
+    
     def append_entries(self, index, entry):
-        """
-        Here index starts from 1
-        """
+       
+       # Here index starts from 1
+       
         if index == len(self.log):
             self.log = self.log[:] + entry
         elif index < len(self.log):
