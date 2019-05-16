@@ -39,6 +39,9 @@ class LogManager:
     def get_log(self):
         return self.log
 
+    def snapshot_change_log(self, last_include_index):
+        self.log = self.log[last_include_index:]
+
     
         
         

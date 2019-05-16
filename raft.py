@@ -1,5 +1,6 @@
 from state import Follower
 from persist import Persist
+from snapshot import Snapshot
 import json
 import logging
 
@@ -21,6 +22,7 @@ class Raft:
         self.state_machine = {}
         self.state_file = "state_" + str(port)
         self.result = {}
+        self.snapshot = Snapshot(self, port)
 
     def change_state(self, new_state):
         self.state.leave_state()
@@ -70,7 +72,7 @@ class Raft:
         return self.address
 
     def get_last_log_index(self):
-        return self.persist.get_last_log_index()
+        return self.persist.get_last_log_index() + self.snapshot.get_last_include_index()
 
     def get_last_log_term(self):
         return self.persist.get_last_log_term()
@@ -92,6 +94,12 @@ class Raft:
 
     def get_log_term(self, index):
         return self.persist.get_log_term(index)
+
+    def get_state_machine(self):
+        return self.state_machine
+
+    def set_state_machine(self, new_state_machine):
+        self.state_machine = new_state_machine
 
     def append_entries(self, index, entry):
         self.persist.append_entries(index, entry)
@@ -121,5 +129,19 @@ class Raft:
             
             self.last_applied += 1
 
-        with open(self.state_file, 'w') as f:
-            f.write(str(self.state_machine))
+        # with open(self.state_file, 'w') as f:
+        #     f.write(str(self.state_machine))
+
+    def snapshot_change_log(self, last_include_index):
+        self.persist.snapshot_change_log(last_include_index)
+
+    def get_last_include_index(self):
+        return self.snapshot.get_last_include_index()
+
+    def get_last_include_term(self):
+        return self.snapshot.get_last_include_term()
+
+    def compact_check(self):
+        last_include_index = self.get_last_include_index()
+        if self.last_applied - last_include_index > 50:
+            self.snapshot.start_compact()

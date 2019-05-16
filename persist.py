@@ -56,6 +56,9 @@ class Persist:
     def get_log_term(self, index):
         return self.data["log_manager"].get_log_term(index)
 
+    def snapshot_change_log(self, last_include_index):
+        self.data["log_manager"].snapshot_change_log(last_include_index)
+
 
     def serialize(self):
         """
@@ -73,6 +76,3 @@ class Persist:
         fileObject = open(self.log_file, "rb")
         data = pickle.load(fileObject)
         return data
-
-
-

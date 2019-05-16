@@ -76,9 +76,10 @@ class Follower(State):
         self.raft.leader = tuple(message["leader_id"])
         response = {"type": "append_entries_response", "term": self.raft.get_current_term()}
         print("Prev_log_index is {}".format(message["prev_log_index"]))
+        last_include_index = self.raft.get_last_include_index()
         if message["term"] < self.raft.get_current_term():
             response["success"] = False
-        elif self.raft.get_log_term(message["prev_log_index"]) != message["prev_log_term"]:
+        elif self.raft.get_log_term(message["prev_log_index"]-last_include_index) != message["prev_log_term"]:
             response["success"] = False
         else:
             response["success"] = True
@@ -176,16 +177,27 @@ class Leader(State):
         for peer in self.raft.get_cluster():
             if peer == self.raft.get_address():
                 continue
-            prev_log_index = self.next_index[peer] - 1
+
+            last_include_index = self.raft.get_last_include_index()
             message = {
                 "type": "append_entries",
                 "term": self.raft.get_current_term(),
-                "prev_log_index": prev_log_index,
-                "prev_log_term": self.raft.get_log_term(prev_log_index),
-                "entries": self.raft.persist.data["log_manager"].log[prev_log_index:],
                 "leader_commit": self.raft.get_commit_index(),
                 "leader_id": self.raft.get_address()
             }
+            if self.next_index[peer] <= last_include_index:
+                last_include_term = self.raft.get_last_include_term()
+                data = self.raft.get_state_machine()
+                message["last_include_index"] = last_include_index
+                message["last_include_term"] = last_include_term
+                message["snapshot"] = data
+                prev_log_index = last_include_index
+            else:
+                prev_log_index = self.next_index[peer] - 1
+            message["prev_log_index"] = prev_log_index
+            message["prev_log_term"] = self.raft.get_log_term(prev_log_index-last_include_index)
+            message["entries"] = self.raft.persist.data["log_manager"].log[prev_log_index-last_include_index:]
+                
             self.raft.send_peer_message(peer, message)
         self.reset_heartbeat_timer()
         
