@@ -52,7 +52,7 @@ class Follower(State):
         if hasattr(self, "follower_timer"):
             self.follower_timer.cancel()
         
-        timeout = random.randint(200, 400)/200
+        timeout = random.randint(300, 500)/1000
         loop = asyncio.get_event_loop()
         self.follower_timer = loop.call_later(timeout, self.raft.change_state, Candidate)
 
@@ -121,7 +121,7 @@ class Candidate(State):
         if hasattr(self, "election_timer"):
             self.election_timer.cancel()
         
-        timeout = random.randint(200, 400)/100
+        timeout = random.randint(300, 500)/1000
         loop = asyncio.get_event_loop()
         self.election_timer = loop.call_later(timeout, self.raft.change_state, Candidate)
 
@@ -193,7 +193,7 @@ class Leader(State):
         if hasattr(self, "heartbeat_timer"):
             self.heartbeat_timer.cancel()
         
-        timeout = 0.7
+        timeout = 0.15
         loop = asyncio.get_event_loop()
         self.heartbeat_timer = loop.call_later(timeout, self.send_append_entries)
 
@@ -214,13 +214,13 @@ class Leader(State):
             self.next_index[peer] -= 1
 
     def client_request(self, message, transport):
-        index = self.raft.get_last_log_index()
         entries = [{
             "term": self.raft.get_current_term(),
             "command": message["command"],
             "key": message["key"],
             "value": message["value"] if "value" in message else None
         }]
+        index = self.raft.get_last_log_index()
         self.waiting_list[index] = transport
         self.raft.append_entries(index, entries)
         logger.info("Upload is recorded")
