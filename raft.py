@@ -99,7 +99,7 @@ class Raft:
     def apply_action(self, commit_index):
 
         logs = self.persist.data["log_manager"].log[self.last_applied:self.commit_index]
-        index = self.last_applied+1
+        index = self.last_applied
         for log in logs:
             if log["command"] == "insert":
                 self.state_machine[log["key"]] = log["value"]
