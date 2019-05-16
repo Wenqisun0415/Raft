@@ -9,6 +9,7 @@ class LogManager:
     def __init__(self, log=[]):
         self.log = log
     
+    # State the function for retriving content and index of log stored by each server
     def append_entries(self, index, entry):
        
        # Here index starts from 1
