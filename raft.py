@@ -85,13 +85,14 @@ class Raft:
 
     def get_cluster(self):
         return self.cluster
-    
+   
     def get_commit_index(self):
         return self.commit_index
     
     def set_commit_index(self, index):
         self.commit_index = index
-
+    
+    # Get the last command that state_machine has finished
     def get_last_applied(self):
         return self.last_applied
 
