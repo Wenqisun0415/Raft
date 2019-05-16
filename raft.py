@@ -21,14 +21,17 @@ class Raft:
         self.state_machine = {}
         self.state_file = "state_" + str(port)
         self.result = {}
-    
+        
+    # Server will change its role from follower, candidate and leader by its state
     def change_state(self, new_state):
         self.state.leave_state()
         self.state = new_state(self)
-
+        
+    # Message received between servers
     def receive_peer_message(self, peer, message):
         self.state.receive_peer_message(peer, message)
-
+        
+    # Message received by client
     def receive_client_message(self, message, transport):
         self.state.receive_client_message(message, transport)
 
@@ -45,7 +48,8 @@ class Raft:
     def broadcast(self, message):
         for peer in self.cluster:
             self.send_peer_message(peer, message)
-
+            
+    # Increase term of server
     def increment_term(self):
         self.persist.increment_term()
 
@@ -54,7 +58,8 @@ class Raft:
 
     def set_current_term(self, term):
         self.persist.set_current_term(term)
-
+        
+    # Voting
     def get_vote_for(self):
         return self.persist.get_vote_for()
 
@@ -69,10 +74,12 @@ class Raft:
 
     def get_address(self):
         return self.address
-
+    
+    # get the index of recent log
     def get_last_log_index(self):
         return self.persist.get_last_log_index()
-
+    
+    # get the index of recent term
     def get_last_log_term(self):
         return self.persist.get_last_log_term()
 
@@ -90,7 +97,8 @@ class Raft:
 
     def set_last_applied(self, applied):
         self.last_applied = applied
-
+        
+    # get the recent log term
     def get_log_term(self, index):
         return self.persist.get_log_term(index)
 
