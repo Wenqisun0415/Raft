@@ -20,7 +20,7 @@ class Raft:
         self.client_transport = None
         self.state_machine = {}
         self.state_file = "state_" + str(port)
-        self.result = None
+        self.result = {}
 
     def change_state(self, new_state):
         self.state.leave_state()
@@ -98,25 +98,26 @@ class Raft:
 
     def apply_action(self, commit_index):
 
-        logger.info("Action applied")
         logs = self.persist.data["log_manager"].log[self.last_applied:self.commit_index]
+        index = self.last_applied+1
         for log in logs:
             if log["command"] == "insert":
                 self.state_machine[log["key"]] = log["value"]
-                self.result = "OK"
+                self.result[index] = "OK"
             elif log["command"] == "get":
                 if log["key"] in self.state_machine:
-                    self.result = self.state_machine[log["key"]]
+                    self.result[index] = self.state_machine[log["key"]]
                 else:
-                    self.result = "(nil)"
+                    self.result[index] = "(nil)"
             elif log["command"] == "delete":
                 if log["key"] in self.state_machine:
                     del self.state_machine[log["key"]]
-                    self.result = "(integer) 1"
+                    self.result[index] = "(integer) 1"
                 else:
-                    self.result = "(integer) 0"
+                    self.result[index] = "(integer) 0"
             else:
                 logger.error("Client command fatal error")
+            index += 1
             
             self.last_applied += 1
 

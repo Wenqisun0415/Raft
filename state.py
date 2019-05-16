@@ -227,17 +227,18 @@ class Leader(State):
 
     def respond_to_client(self):
         message = {
-            "type": "result",
-            "result": self.raft.result
+            "type": "result"
         }
         servered = []
         for client in self.waiting_list:
             if client <= self.raft.commit_index:
+                message["result"] = self.raft.result[client]
                 self.raft.send_client_message(message, self.waiting_list[client])
                 logger.info("Sending client result")
                 servered.append(client)
         for client in servered:
             self.waiting_list.pop(client)
+            self.raft.result.pop(client)
 
     def vote_result(self, peer, message):
         pass

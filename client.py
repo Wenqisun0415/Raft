@@ -40,7 +40,7 @@ class Client:
     def insert(self, key, value):
         self.request({
             "type": "client_request",
-            "command": "set",
+            "command": "insert",
             "key": key,
             "value": value
         })
@@ -55,7 +55,7 @@ class Client:
     def delete(self, key):
         self.request({
             "type": "client_request",
-            "command": "del",
+            "command": "delete",
             "key": key
         })
 
