@@ -7,6 +7,7 @@ import logging.config
 logging.config.fileConfig(fname='file.conf', disable_existing_loggers=False)
 logger = logging.getLogger("raft")
 
+# State the basic interfaces include follower, candidate and leader
 class Persist:
 
     def __init__(self, port, reset=False):
@@ -58,18 +59,17 @@ class Persist:
 
 
     def serialize(self):
-        """
-        Store object into the disk
-        data -- the object to be stored
-        """
+       
+        # Store object into the disk
+  
         fileObject = open(self.log_file, "wb")
         pickle.dump(self.data, fileObject)
         fileObject.close()
 
     def deserialized(self):
-        """
-        Retrieve object from the disk
-        """
+    
+        # Get object from the disk
+        
         fileObject = open(self.log_file, "rb")
         data = pickle.load(fileObject)
         return data
