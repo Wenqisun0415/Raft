@@ -148,6 +148,9 @@ class Candidate(State):
     def append_entries_response(self, peer, message):
         pass
 
+    def request_vote(self, peer, message):
+        pass
+
 class Leader(State):
 
     def __init__(self, raft):
