@@ -7,7 +7,7 @@ import logging.config
 logging.config.fileConfig(fname='file.conf', disable_existing_loggers=False)
 logger = logging.getLogger("raft")
 
-# State the basic interfaces for transformation between follower, candidate and leader
+# State the basic interfaces between follower, candidate and leader
 class Persist:
 
     def __init__(self, port, reset=False):
