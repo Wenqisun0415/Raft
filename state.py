@@ -259,3 +259,6 @@ class Leader(State):
 
     def vote_result(self, peer, message):
         pass
+
+    def append(self, peer, message):
+        pass
