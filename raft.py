@@ -1,3 +1,12 @@
+'''
+Project: 
+Distributed KV storage system with Raft algorithm
+
+Author:
+Wenqi Sun 928630	Huiya Chen 894933
+Yishan Shi 883166	Shaobo Wang 935596
+'''
+
 from state import Follower
 from persist import Persist
 import json
