@@ -1,3 +1,11 @@
+'''
+Project: 
+Distributed KV storage system with Raft algorithm
+
+Author:
+Wenqi Sun 928630	Huiya Chen 894933
+Yishan Shi 883166	Shaobo Wang 935596
+'''
 
 import logging.config
 
@@ -8,11 +16,12 @@ class LogManager:
 
     def __init__(self, log=[]):
         self.log = log
-
+    
+    # State the function for retriving content and index of log stored by each server
     def append_entries(self, index, entry):
-        """
-        Here index starts from 1
-        """
+       
+       # Here index starts from 1
+       
         if index == len(self.log):
             self.log = self.log[:] + entry
         elif index < len(self.log):

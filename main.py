@@ -1,10 +1,19 @@
+'''
+Project: 
+Distributed KV storage system with Raft algorithm
+
+Author:
+Wenqi Sun 928630	Huiya Chen 894933
+Yishan Shi 883166	Shaobo Wang 935596
+'''
+
 import sys
 import asyncio
 from raft import Raft
 from protocol import UDPProtocol, TCPProtocol
 import socket
 
-
+# Main function to start or test
 def main():
 
     hostname = socket.gethostname()    
