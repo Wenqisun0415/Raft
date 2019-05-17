@@ -106,7 +106,7 @@ class Raft:
     def append_entries(self, index, entry):
         self.persist.append_entries(index, entry)
     
-    # Receive actions from Client and send back the result
+    # according to 'commit_index' and 'last_applied' index, apply commands in log entries to state machine.
     def apply_action(self, commit_index):
 
         logs = self.persist.data["log_manager"].log[self.last_applied:self.commit_index]
@@ -131,6 +131,6 @@ class Raft:
             index += 1
             
             self.last_applied += 1
-
+        #write the contents of the state machine to disk, for checking consistency between servers.
         with open(self.state_file, 'w') as f:
             f.write(str(self.state_machine))
