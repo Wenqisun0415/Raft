@@ -206,7 +206,7 @@ class Leader(State):
 
             # The median of the commit_index is the maximum log that appears on majority of servers
             self.raft.commit_index = median(self.match_index.values())
-            #TODO commit
+            
             self.raft.apply_action(self.raft.get_commit_index())
             self.respond_to_client()
 

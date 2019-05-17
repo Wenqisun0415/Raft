@@ -38,10 +38,3 @@ class LogManager:
 
     def get_log(self):
         return self.log
-
-    
-        
-        
-
-
-

@@ -73,6 +73,3 @@ class Persist:
         fileObject = open(self.log_file, "rb")
         data = pickle.load(fileObject)
         return data
-
-
-
