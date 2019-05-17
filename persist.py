@@ -1,3 +1,12 @@
+'''
+Project: 
+Distributed KV storage system with Raft algorithm
+
+Author:
+Wenqi Sun 928630	Huiya Chen 894933
+Yishan Shi 883166	Shaobo Wang 935596
+'''
+
 from log import LogManager
 import pickle
 import os.path
